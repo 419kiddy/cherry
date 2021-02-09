@@ -3,13 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cherry/dialog.dart';
 
 void main() {
   runApp(ProviderScope(child: MyApp()));
 }
 
-final nameProvider = StateProvider((ref) => "find cherry");
+final nameProvider = StateProvider((ref) => "Let's find");
 final cherryProvider = StateProvider((ref) => true);
+final addNameProvider = StateProvider((ref) => "");
+final addCherryProvider = StateProvider((ref) => "");
 
 class MyApp extends HookWidget {
   @override
@@ -18,7 +21,6 @@ class MyApp extends HookWidget {
     return FutureBuilder(
       future: Firebase.initializeApp(),
       builder: (context, snapshot) {
-
         // エラー時に表示するWidget
         if (snapshot.hasError) {
           return Container(color: Colors.white);
@@ -43,7 +45,9 @@ class MyApp extends HookWidget {
   }
 }
 
-class RootWidget extends HookWidget{
+class RootWidget extends HookWidget {
+  final _textController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     final String _name = useProvider(nameProvider).state;
@@ -51,9 +55,14 @@ class RootWidget extends HookWidget{
     String _text = "";
     if (_cherry) {
       _text = "童貞";
-    } else {_text = "";}
+    } else {
+      _text = "";
+    }
+    MaterialLocalizations localizations = MaterialLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text("Who's Cherry?"),),
+      appBar: AppBar(
+        title: Text("Who's Cherry?"),
+      ),
       body: Column(
         children: [
           Container(
@@ -67,8 +76,9 @@ class RootWidget extends HookWidget{
           Flexible(
             child: StreamBuilder(
               stream: FirebaseFirestore.instance.collection('boys').snapshots(),
-              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                if(snapshot.data == null) return CircularProgressIndicator();
+              builder: (BuildContext context,
+                  AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.data == null) return CircularProgressIndicator();
                 return ListView.builder(
                   shrinkWrap: true,
                   itemCount: snapshot.data.docs.length,
@@ -76,12 +86,10 @@ class RootWidget extends HookWidget{
                     return ListTile(
                       title: Text(snapshot.data.docs[index].data()['name']),
                       onTap: () async {
-                        context
-                            .read(nameProvider)
-                            .state = snapshot.data.docs[index].data()["name"];
-                        context
-                            .read(cherryProvider)
-                            .state = await snapshot.data.docs[index].data()["isCherry"];
+                        context.read(nameProvider).state =
+                            snapshot.data.docs[index].data()["name"];
+                        context.read(cherryProvider).state =
+                            await snapshot.data.docs[index].data()["isCherry"];
                       },
                     );
                   },
@@ -92,7 +100,62 @@ class RootWidget extends HookWidget{
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        child: Icon(Icons.add),
+        onPressed: () async {
+          // ダイアログを表示------------------------------------
+          var result = await showDialog<int>(
+            context: context,
+            barrierDismissible: true,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text("registration"),
+                content: TextField(
+                  controller: _textController,
+                  decoration: InputDecoration(
+                    hintText: "name",
+                  ),
+                  autofocus: true,
+                ),
+                actions: [
+                  Column(
+                    children: [
+                      Row(
+                        children: [
+                          Text('cherry:'),
+                          Radio(activeColor: Colors.blue, value: true, groupValue: false, onChanged: null),
+                          Text('    not cherry:'),
+                          Radio(activeColor: Colors.blue, value: false, groupValue: true, onChanged: null),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          FlatButton(
+                            child: Text(localizations.cancelButtonLabel),
+                            onPressed: () => Navigator.of(context).pop(0),
+                          ),
+                          FlatButton(
+                            child: Text(localizations.okButtonLabel),
+                            onPressed: () {
+// Map<String, dynamic> insertData = {
+//   'username': _textController.text,
+//   'email':,
+// };
+// FirebaseFirestore.instance.collection('boys')
+//     .docs()
+//     .setData(insertData);
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
+          );
+          print('dialog result: $result');
+          // --
+        },
       ),
     );
   }
