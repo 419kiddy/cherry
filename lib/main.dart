@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:cherry/dialog.dart';
 
 void main() {
   runApp(ProviderScope(child: MyApp()));
@@ -12,9 +11,10 @@ void main() {
 final nameProvider = StateProvider((ref) => "Let's find");
 final cherryProvider = StateProvider((ref) => true);
 final addNameProvider = StateProvider((ref) => "");
-final addCherryProvider = StateProvider((ref) => "");
+final addCherryProvider = StateProvider((ref) => true);
 
-class MyApp extends HookWidget {
+
+  class MyApp extends HookWidget {
   @override
   Widget build(BuildContext context) {
     Firebase.initializeApp();
@@ -52,6 +52,9 @@ class RootWidget extends HookWidget {
   Widget build(BuildContext context) {
     final String _name = useProvider(nameProvider).state;
     final bool _cherry = useProvider(cherryProvider).state;
+    final String _addName = useProvider(addNameProvider).state;
+
+    final bool _addCherry = useProvider(addCherryProvider).state;
     String _text = "";
     if (_cherry) {
       _text = "童貞";
@@ -122,28 +125,34 @@ class RootWidget extends HookWidget {
                       Row(
                         children: [
                           Text('cherry:'),
-                          Radio(activeColor: Colors.blue, value: true, groupValue: false, onChanged: null),
+                          Radio(
+                              activeColor: Colors.blue,
+                              value: true,
+                              groupValue: _addCherry,
+                              onChanged: (bool){context.read(addCherryProvider).state = true;},
+                          ),
                           Text('    not cherry:'),
-                          Radio(activeColor: Colors.blue, value: false, groupValue: true, onChanged: null),
+                          Radio(
+                              activeColor: Colors.blue,
+                              value: false,
+                              groupValue: _addCherry,
+                              onChanged: (bool){context.read(addCherryProvider).state = false;},
+                          ),
                         ],
                       ),
                       Row(
                         children: [
                           FlatButton(
                             child: Text(localizations.cancelButtonLabel),
-                            onPressed: () => Navigator.of(context).pop(0),
+                            onPressed: () => Navigator.pop(context),
                           ),
                           FlatButton(
                             child: Text(localizations.okButtonLabel),
                             onPressed: () {
-// Map<String, dynamic> insertData = {
-//   'username': _textController.text,
-//   'email':,
-// };
-// FirebaseFirestore.instance.collection('boys')
-//     .docs()
-//     .setData(insertData);
-                            },
+                              context.read(addNameProvider).state = _textController.text;
+                              _textController.text = '';
+                              Navigator.pop(context);
+                            }
                           ),
                         ],
                       ),
@@ -153,7 +162,6 @@ class RootWidget extends HookWidget {
               );
             },
           );
-          print('dialog result: $result');
           // --
         },
       ),
