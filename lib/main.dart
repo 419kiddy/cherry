@@ -10,14 +10,10 @@ void main() {
 
 final nameProvider = StateProvider((ref) => "Let's find");
 final cherryProvider = StateProvider((ref) => true);
-final addNameProvider = StateProvider((ref) => "");
-final addCherryProvider = StateProvider((ref) => true);
 
-
-  class MyApp extends HookWidget {
+class MyApp extends HookWidget {
   @override
   Widget build(BuildContext context) {
-    Firebase.initializeApp();
     return FutureBuilder(
       future: Firebase.initializeApp(),
       builder: (context, snapshot) {
@@ -52,16 +48,14 @@ class RootWidget extends HookWidget {
   Widget build(BuildContext context) {
     final String _name = useProvider(nameProvider).state;
     final bool _cherry = useProvider(cherryProvider).state;
-    final String _addName = useProvider(addNameProvider).state;
-
-    final bool _addCherry = useProvider(addCherryProvider).state;
+    String _addName = '';
+    bool _addCherry = true;
     String _text = "";
     if (_cherry) {
       _text = "童貞";
     } else {
       _text = "";
     }
-    MaterialLocalizations localizations = MaterialLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text("Who's Cherry?"),
@@ -74,7 +68,13 @@ class RootWidget extends HookWidget {
           ),
           Container(
             height: 50,
-            child: Center(child: Text(_text)),
+            child: Center(
+                child: Text(
+                  _text,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 40,
+            ),)),
           ),
           Flexible(
             child: StreamBuilder(
@@ -120,44 +120,52 @@ class RootWidget extends HookWidget {
                   autofocus: true,
                 ),
                 actions: [
-                  Column(
-                    children: [
-                      Row(
-                        children: [
-                          Text('cherry:'),
-                          Radio(
-                              activeColor: Colors.blue,
-                              value: true,
-                              groupValue: _addCherry,
-                              onChanged: (bool){context.read(addCherryProvider).state = true;},
-                          ),
-                          Text('    not cherry:'),
-                          Radio(
-                              activeColor: Colors.blue,
-                              value: false,
-                              groupValue: _addCherry,
-                              onChanged: (bool){context.read(addCherryProvider).state = false;},
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          FlatButton(
-                            child: Text(localizations.cancelButtonLabel),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                          FlatButton(
-                            child: Text(localizations.okButtonLabel),
-                            onPressed: () {
-                              context.read(addNameProvider).state = _textController.text;
-                              _textController.text = '';
-                              Navigator.pop(context);
-                            }
-                          ),
-                        ],
-                      ),
-                    ],
+                  FlatButton(
+                    child: Text('cancel'),
+                    onPressed: () => Navigator.pop(context),
                   ),
+                  FlatButton(
+                      child: Text('not cherry'),
+                      onPressed: () {
+                        if (_textController.text == '') {
+                          Navigator.pop(context);
+                        } else {
+                          _addName = _textController.text;
+                          _addCherry = false;
+                          FirebaseFirestore.instance
+                              .collection('boys')
+                              .add({
+                                'name': _addName,
+                                'isCherry': _addCherry,
+                              })
+                              .then((value) => print("User Added"))
+                              .catchError((error) =>
+                                  print("Failed to add user: $error"));
+                          _textController.text = '';
+                          Navigator.pop(context);
+                        }
+                      }),
+                  FlatButton(
+                      child: Text('cherry'),
+                      onPressed: () {
+                        if (_textController.text == '') {
+                          Navigator.pop(context);
+                        } else {
+                          _addName = _textController.text;
+                          _addCherry = true;
+                          FirebaseFirestore.instance
+                              .collection('boys')
+                              .add({
+                                'name': _addName,
+                                'isCherry': _addCherry,
+                              })
+                              .then((value) => print("User Added"))
+                              .catchError((error) =>
+                                  print("Failed to add user: $error"));
+                          _textController.text = '';
+                          Navigator.pop(context);
+                        }
+                      }),
                 ],
               );
             },
