@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -15,17 +16,29 @@ class RootWidget extends HookWidget {
     String _addName = '';
     bool _addCherry = true;
     String _text = "";
+    String UID = "";
     if (_cherry) {
       _text = "童貞";
     } else {
       _text = "";
     }
+
+    FirebaseAuth auth = FirebaseAuth.instance;
+    if (auth.currentUser != null) {
+      print(auth.currentUser.uid);
+      UID = auth.currentUser.uid;
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Who's Cherry?"),
       ),
       body: Column(
         children: [
+          Container(
+            height: 50,
+            child: Text(UID + "でログイン中"),
+          ),
           Container(
             height: 50,
             child: Center(child: Text(_name)),
