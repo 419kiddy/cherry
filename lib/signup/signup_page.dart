@@ -1,3 +1,4 @@
+import 'package:cherry/main.dart';
 import 'package:cherry/root.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -46,13 +47,7 @@ class SignUpPage extends HookWidget{
                     );
                     _addressController.text = "";
                     _passwordController.text = "";
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (BuildContext context) {
-                          return RootWidget();
-                        },
-                      ),
-                    );
+                    context.read(stateProvider).state = 2;
 
                   } on FirebaseAuthException catch (e) {
                     if (e.code == 'weak-password') {
@@ -67,6 +62,12 @@ class SignUpPage extends HookWidget{
                   }
                 },
               ),
+              TextButton(
+                  onPressed: (){
+                    context.read(stateProvider).state = 1;
+                  },
+                  child: Text("アカウントをお持ちですか？"),
+              )
             ],
           ),
       ),

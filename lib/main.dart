@@ -1,3 +1,4 @@
+import 'package:cherry/signin/signin_page.dart';
 import 'package:cherry/signup/signup_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -12,10 +13,20 @@ void main() {
 
 final nameProvider = StateProvider((ref) => "Let's find");
 final cherryProvider = StateProvider((ref) => true);
+final stateProvider = StateProvider((ref) => 0);
+//0 signup
+//1 signin
+//2 root
 
 class MyApp extends HookWidget {
+  var _routes = [
+    SignUpPage(),
+    SignInPage(),
+    RootWidget(),
+  ];
   @override
   Widget build(BuildContext context) {
+    final int _state = useProvider(stateProvider).state;
     return FutureBuilder(
       future: Firebase.initializeApp(),
       builder: (context, snapshot) {
@@ -32,7 +43,7 @@ class MyApp extends HookWidget {
               primarySwatch: Colors.blue,
               visualDensity: VisualDensity.adaptivePlatformDensity,
             ),
-            home: SignUpPage(),
+            home: _routes[_state],
           );
         }
 
