@@ -1,3 +1,5 @@
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:cherry/mylist.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -52,6 +54,44 @@ class RootWidget extends HookWidget {
                     fontWeight: FontWeight.bold,
                     fontSize: 40,
                   ),)),
+          ),
+          Center(
+              child: IconButton(
+                  icon: Icon(Icons.accessibility_sharp),
+                  onPressed: (){
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context){
+                          final Size _size = MediaQuery.of(context).size;
+                          return Scaffold(
+                            body: SafeArea(
+                              child: CarouselSlider(
+                                options: CarouselOptions(
+                                  height: _size.height,
+                                  viewportFraction: 0.6,
+                                  enlargeCenterPage: true,
+                                ),
+                                items: [1,2,3,4,5].map((i) {
+                                  return Builder(
+                                    builder: (BuildContext context) {
+                                      return Container(
+                                          width: MediaQuery.of(context).size.width,
+                                          height: MediaQuery.of(context).size.height,
+                                          margin: EdgeInsets.all(5),
+                                          decoration: BoxDecoration(
+                                              color: Colors.amber,
+                                              borderRadius: BorderRadius.circular(25),
+                                          ),
+                                          child: Text('text $i', style: TextStyle(fontSize: 16.0),)
+                                      );
+                                    },
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          );
+                        }));
+                  },
+              )
           ),
           Flexible(
             child: StreamBuilder(
